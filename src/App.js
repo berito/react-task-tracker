@@ -7,17 +7,25 @@ import About from "./components/About";
 import Footer from "./components/Footer";
 import Tasks from "./components/Tasks";
 import AddTask from "./components/AddTask";
+import { db } from "./firebase";
+import { query, collection, onSnapshot, doc } from "firebase/firestore";
+import TaskService from "./services/task.service";
 
 function App() {
   const [showAddTask, setShowAddTask] = useState(false);
   const [tasks, setTasks] = useState([]);
   useEffect(() => {
-    const getTasks = async () => {
-      const tasksFromServer = await fetchTasks();
-      setTasks(tasksFromServer);
-    };
+    // const getTasks = async () => {
+    //   const tasksFromServer = await fetchTasks();
+    //   setTasks(tasksFromServer);
+    // };
     getTasks();
   }, []);
+  //fetching data from fire store and using service class
+  const getTasks = async () => {
+    const data = await TaskService.getAllTasks();
+    setTasks(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+  };
   const fetchTasks = async () => {
     const res = await fetch("http://localhost:5000/tasks");
     const data = res.json();
@@ -34,19 +42,22 @@ function App() {
   //   setTasks([...tasks,newTask])
   // };
   const addTask = async (task) => {
-    const res = await fetch("http://localhost:5000/tasks", {
-      method: "POST",
-      headers: { "Content-type": "application/json" },
-      body: JSON.stringify(task),
-    });
-    const newTask = await res.json();
-    setTasks([...tasks, newTask]);
+    // const res = await fetch("http://localhost:5000/tasks", {
+    //   method: "POST",
+    //   headers: { "Content-type": "application/json" },
+    //   body: JSON.stringify(task),
+    // });
+    // const newTask = await res.json();
+    const newTask = await TaskService.addTask(task);
+    // setTasks([...tasks, newTask]);
+    getTasks()
   };
   // const deleteTask =  (id) => {
   //   setTasks(tasks.filter((task) => task.id !== id));
   // };
   const deleteTask = async (id) => {
-    await fetch(`http://localhost:5000/tasks/${id}`, { method: "DELETE" });
+    // await fetch(`http://localhost:5000/tasks/${id}`, { method: "DELETE" });
+    const deletedTask = await TaskService.deleteTask(id);
     setTasks(tasks.filter((task) => task.id !== id));
   };
   // const toggleReminder = (id) => {
